@@ -1,15 +1,27 @@
-version: "3.3"
+version: "3.4"
 services:
+  catalogdb:
+    image: mongo
+    restart: always
+    ports:
+        - "27017:27017"
+    volumes:
+        - mongo_data:/data/db
   orchestrator:
     image: tripplanner.orchestrator
     build:
       dockerfile: ./TripPlanner.Orchestrator/Dockerfile
+    depends_on:
+      - catalogdb
     ports:
       - "5001:80"
   hostel:
     image: tripplanner.hostel
     build:
       dockerfile: ./TripPlanner.Hostel/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - "DatabaseSettings:ConnectionString=mongodb://catalogdb:27017"
     ports:
       - "5002:80"
   flight:
@@ -18,3 +30,5 @@ services:
       dockerfile: ./TripPlanner.Flight/Dockerfile
     ports:
       - "5003:80"
+volumes:
+  mongo_data:
